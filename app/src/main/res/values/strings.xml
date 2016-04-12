@@ -1,3 +1,10 @@
 <resources>
-    <string name="app_name">PhotoGallery</string>
+    <string name="app_name">Photo gallery from Flickr</string>
+
+    <string name="btn_search_by_address">Search by address</string>
+    <string name="btn_search_by_map">Search by map</string>
+
+    <string name="action_search_address">Search by address</string>
+    <string name="action_get_current_position">Get current position</string>
+
 </resources>
