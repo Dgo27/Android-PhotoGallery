@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "verona.diego.photogallery"
-        minSdkVersion 14
+        minSdkVersion 23
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -31,12 +31,12 @@ repositories {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:23.3.0'
     compile 'com.google.android.gms:play-services:8.4.0'
     compile 'com.novoda:merlin:0.7.0'
     compile('de.keyboardsurfer.android.widget:crouton:1.7') {
         exclude module: 'support-v4'
     }
+    testCompile 'junit:junit:4.12'
 }

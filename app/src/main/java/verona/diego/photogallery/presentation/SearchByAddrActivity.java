@@ -1,25 +1,19 @@
 package verona.diego.photogallery.presentation;
 
-import android.Manifest;
 import android.content.DialogInterface;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
+import android.content.Intent;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
 import com.novoda.merlin.Merlin;
 import com.novoda.merlin.MerlinsBeard;
 import com.novoda.merlin.NetworkStatus;
@@ -30,57 +24,39 @@ import com.novoda.merlin.registerable.disconnection.Disconnectable;
 import verona.diego.photogallery.R;
 import verona.diego.photogallery.connectivity.display.NetworkStatusCroutonDisplayer;
 import verona.diego.photogallery.connectivity.display.NetworkStatusDisplayer;
+import verona.diego.photogallery.get.data.FlickrTask;
 import verona.diego.photogallery.presentation.base.CheckInternetActivity;
 
-public class SearchThroughMapActivity extends CheckInternetActivity implements OnMapReadyCallback,
-        GoogleMap.OnCameraChangeListener, Connectable, Disconnectable, Bindable {
+public class SearchByAddrActivity extends CheckInternetActivity implements Connectable, Disconnectable, Bindable {
 
-    private GoogleMap mMap;
+    private Toolbar myToolbar;
     double tmp_lat = 0.0;
     double tmp_lng = 0.0;
 
     private NetworkStatusDisplayer networkStatusDisplayer;
     private MerlinsBeard merlinsBeard;
 
+    private FlickrTask flickrTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_search_through_map);
+        setContentView(R.layout.activity_search_by_addr);
 
-        // set toolbar
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar_map);
         setSupportActionBar(myToolbar);
         getActionBar();
         if(getSupportActionBar()!=null)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        // set google maps
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
-        // set smart network notices
         networkStatusDisplayer = new NetworkStatusCroutonDisplayer(this);
         merlinsBeard = MerlinsBeard.from(this);
+
+        flickrTask = new FlickrTask();
+        //Toast.makeText(SearchByAddrActivity.this,
+          //      "Result: "+flickrTask.testConnection(), Toast.LENGTH_SHORT).show();
     }
 
-    /**
-     * Move the map camera, get the photos and set markers
-     */
-    private void setMarkers(LatLng mLatLng){
-        //move camera there
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLatLng, 5));
-        //search images
-        //TODO here
-        //add markers
-        Toast.makeText(SearchThroughMapActivity.this, "center: "+mLatLng, Toast.LENGTH_SHORT).show();
-    }
-
-    /**
-     * Create a simple and smart way to notify users to the connection state
-     * @return Merlin object
-     */
     @Override
     protected Merlin createMerlin() {
         return new Merlin.Builder()
@@ -89,39 +65,6 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
                 .withBindableCallbacks()
                 .withLogging(true)
                 .build(this);
-    }
-
-    // ************   LISTENERS   *************
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID); // hybrid map
-        mMap.setIndoorEnabled(false); // no indoor map
-        mMap.getUiSettings().setCompassEnabled(true);
-        mMap.getUiSettings().setZoomControlsEnabled(true);
-        mMap.setMyLocationEnabled(true);
-        mMap.setOnCameraChangeListener(this);
-        mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
-            @Override
-            public boolean onMyLocationButtonClick() {
-                CameraPosition cameraP = mMap.getCameraPosition();
-                setMarkers(new LatLng(cameraP.target.longitude,cameraP.target.latitude));
-                return true;
-            }
-        });
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
-        } else {
-            Toast.makeText(SearchThroughMapActivity.this,
-                    "Review app permissions", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    public void onCameraChange(CameraPosition position){
-        setMarkers(new LatLng(position.target.latitude, position.target.longitude));
     }
 
     @Override
@@ -190,7 +133,8 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
                         .setPositiveButton(R.string.btn_go_there,
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
-                                        setMarkers(new LatLng(Double.valueOf(eT_lat.getText().toString()) , Double.valueOf(eT_lng.getText().toString())));
+                                        tmp_lat = Double.valueOf(eT_lat.getText().toString());
+                                        tmp_lng = Double.valueOf(eT_lng.getText().toString());
                                     }
                                 })
                         .setNegativeButton(R.string.btn_cancel,

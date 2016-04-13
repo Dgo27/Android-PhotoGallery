@@ -1,10 +1,15 @@
 package verona.diego.photogallery.presentation;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.novoda.merlin.Merlin;
 import com.novoda.merlin.MerlinsBeard;
@@ -25,6 +30,8 @@ public class MainActivity extends CheckInternetActivity implements Connectable, 
     private NetworkStatusDisplayer networkStatusDisplayer;
     private MerlinsBeard merlinsBeard;
 
+    private static final int FINE_LOCATION_RESULT = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,6 +45,34 @@ public class MainActivity extends CheckInternetActivity implements Connectable, 
 
         networkStatusDisplayer = new NetworkStatusCroutonDisplayer(this);
         merlinsBeard = MerlinsBeard.from(this);
+
+        getPermissionToGetCurrentPosition();
+    }
+
+    public void getPermissionToGetCurrentPosition() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (shouldShowRequestPermissionRationale(
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+                //TODO UI to explain to the user why we need its location
+            }
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_LOCATION_RESULT);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
+        if (requestCode == FINE_LOCATION_RESULT) {
+            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // good! this permission is used later in other activities
+            } else {
+                Toast.makeText(this, "No permission -> no position :)", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 
     public void addListenerOnButton() {
@@ -49,7 +84,7 @@ public class MainActivity extends CheckInternetActivity implements Connectable, 
             @Override
             public void onClick(View arg0) {
                 if (merlinsBeard.isConnected()) {
-                    networkStatusDisplayer.displayConnected();
+                    startActivity(new Intent(MainActivity.this,SearchByAddrActivity.class));
                 } else {
                     networkStatusDisplayer.displayDisconnected();
                 }
