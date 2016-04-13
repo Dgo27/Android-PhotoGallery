@@ -7,11 +7,12 @@
     android:layout_height="match_parent"
     android:layout_alignParentTop="true"
     android:layout_alignParentEnd="true"
+    android:layout_alignParentRight="true"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="verona.diego.photogallery.MainActivity"
+    tools:context=".presentation.MainActivity"
     android:weightSum="1">
 
     <android.support.v7.widget.Toolbar
@@ -34,12 +35,12 @@
         android:contentDescription="@string/btn_search_by_address" />
 
     <ImageButton
-        android:id="@+id/action_search_by_map"
+        android:id="@+id/action_search_through_map"
         android:paddingTop="@dimen/activity_vertical_margin"
         android:layout_gravity="center_horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0.50"
-        android:background="@drawable/img_search_by_map"
-        android:contentDescription="@string/btn_search_by_map" />
+        android:background="@drawable/img_search_through_map"
+        android:contentDescription="@string/btn_search_through_map" />
 </LinearLayout>
