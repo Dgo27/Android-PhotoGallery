@@ -155,7 +155,7 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
                                                      Log.v("query-inner", query_info);
                                                      Ion.with(SearchThroughMapActivity.this)
                                                              .load(query_info)
-                                                             .asString() // I don't know why but if I set "asJsonObject" it doesn't work (return null)
+                                                             .asString() // Flickr guys are not funny -.-"
                                                              .setCallback(new FutureCallback<String>() {
                                                                  @Override
                                                                  public void onCompleted(Exception e, String result2) {
@@ -267,6 +267,7 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
             Toast.makeText(SearchThroughMapActivity.this,
                     "Review app permissions", Toast.LENGTH_SHORT).show();
         }
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(46.074779, 11.121749), 10));
     }
 
     @Override
