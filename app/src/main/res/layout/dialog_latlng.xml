@@ -11,7 +11,8 @@
         android:layout_marginLeft="4dp"
         android:layout_marginRight="4dp"
         android:layout_marginBottom="4dp"
-        android:hint="@string/label_latitude" />
+        android:hint="@string/label_latitude"
+        android:autoText="false" />
     <EditText
         android:id="@+id/in_longitude"
         android:inputType="numberDecimal"

@@ -38,5 +38,7 @@ dependencies {
     compile('de.keyboardsurfer.android.widget:crouton:1.7') {
         exclude module: 'support-v4'
     }
+    compile 'com.koushikdutta.ion:ion:2.+'
+    compile 'com.squareup.picasso:picasso:2.5.2'
     testCompile 'junit:junit:4.12'
 }

@@ -1,9 +1,7 @@
 package verona.diego.photogallery.presentation;
 
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -11,8 +9,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.Toast;
 
 import com.novoda.merlin.Merlin;
 import com.novoda.merlin.MerlinsBeard;
@@ -24,7 +20,6 @@ import com.novoda.merlin.registerable.disconnection.Disconnectable;
 import verona.diego.photogallery.R;
 import verona.diego.photogallery.connectivity.display.NetworkStatusCroutonDisplayer;
 import verona.diego.photogallery.connectivity.display.NetworkStatusDisplayer;
-import verona.diego.photogallery.get.data.FlickrTask;
 import verona.diego.photogallery.presentation.base.CheckInternetActivity;
 
 public class SearchByAddrActivity extends CheckInternetActivity implements Connectable, Disconnectable, Bindable {
@@ -35,8 +30,6 @@ public class SearchByAddrActivity extends CheckInternetActivity implements Conne
 
     private NetworkStatusDisplayer networkStatusDisplayer;
     private MerlinsBeard merlinsBeard;
-
-    private FlickrTask flickrTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,10 +44,6 @@ public class SearchByAddrActivity extends CheckInternetActivity implements Conne
 
         networkStatusDisplayer = new NetworkStatusCroutonDisplayer(this);
         merlinsBeard = MerlinsBeard.from(this);
-
-        flickrTask = new FlickrTask();
-        //Toast.makeText(SearchByAddrActivity.this,
-          //      "Result: "+flickrTask.testConnection(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
