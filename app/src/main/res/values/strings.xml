@@ -1,16 +1,21 @@
 <resources>
     <string name="app_name">Photo gallery from Flickr</string>
 
+    <string name="flickr_api">1f97d6102a9c9d8eb3ac60d508e0f18a</string>
+
     <string name="btn_search_by_address">Search by address</string>
     <string name="btn_search_through_map">Search through the map</string>
     <string name="btn_go_there">Go there</string>
     <string name="btn_cancel">Cancel</string>
+
+    <string name="image">Image</string>
 
     <string name="action_search_address">Search by address</string>
     <string name="action_get_current_position">Get current position</string>
 
     <string name="title_activity_search_through_map">Search through the map</string>
     <string name="title_activity_search_by_addr">Search by address</string>
+    <string name="title_activity_photo_details">Photo details</string>
 
     <string name="network_connected">Network connected</string>
     <string name="network_disconnected">Network disconnected</string>

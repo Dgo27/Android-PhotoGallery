@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="verona.diego.photogallery">
 
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -10,11 +10,9 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-
         <meta-data
-        android:name="com.google.android.geo.API_KEY"
-        android:value="@string/google_maps_key" />
-
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
@@ -31,8 +29,12 @@
         <activity
             android:name=".presentation.SearchThroughMapActivity"
             android:label="@string/title_activity_search_through_map" />
-        <activity android:name=".presentation.SearchByAddrActivity"
+        <activity
+            android:name=".presentation.SearchByAddrActivity"
             android:label="@string/title_activity_search_by_addr" />
+        <activity
+            android:name=".presentation.PhotoDetails"
+            android:label="@string/title_activity_photo_details" />
     </application>
 
 </manifest>

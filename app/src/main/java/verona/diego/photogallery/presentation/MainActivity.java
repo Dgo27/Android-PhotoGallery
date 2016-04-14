@@ -49,32 +49,6 @@ public class MainActivity extends CheckInternetActivity implements Connectable, 
         getPermissionToGetCurrentPosition();
     }
 
-    public void getPermissionToGetCurrentPosition() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            if (shouldShowRequestPermissionRationale(
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-                //TODO UI to explain to the user why we need its location
-            }
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_LOCATION_RESULT);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[],
-                                           @NonNull int[] grantResults) {
-        if (requestCode == FINE_LOCATION_RESULT) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // good! this permission is used later in other activities
-            } else {
-                Toast.makeText(this, "No permission -> no position :)", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-    }
-
     public void addListenerOnButton() {
 
         btn_search_by_address = (ImageButton) findViewById(R.id.action_search_by_address);
@@ -100,6 +74,31 @@ public class MainActivity extends CheckInternetActivity implements Connectable, 
                 }
             }
         });
+    }
+
+    public void getPermissionToGetCurrentPosition() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            if(shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                //TODO UI to explain to the user why we need its location
+            }
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_LOCATION_RESULT);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
+        if (requestCode == FINE_LOCATION_RESULT) {
+            if(grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // good! this permission is used later in other activities
+            } else {
+                Toast.makeText(this, "No permission -> no position :)", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 
     @Override

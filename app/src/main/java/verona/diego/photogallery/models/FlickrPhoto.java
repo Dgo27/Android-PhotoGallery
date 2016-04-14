@@ -3,21 +3,23 @@ package verona.diego.photogallery.models;
 import java.util.Date;
 
 /**
+ * This is the model for the data downloaded from Flickr
  * Created by Diego on 13/04/2016.
  */
 public class FlickrPhoto {
-    private int id = 0;
+    private long id = 0;
     private String title = "";
     private String url = "";
     private double latitude = 0.0;
     private double longitude = 0.0;
+    private boolean shown = false;
 
     public FlickrPhoto(int id, String title){
         this.id = id;
         this.title = title;
     }
 
-    public FlickrPhoto(int id, String title, String url, double latitude, double longitude){
+    public FlickrPhoto(long id, String title, String url, double latitude, double longitude){
         this.id = id;
         this.title = title;
         this.url = url;
@@ -26,11 +28,11 @@ public class FlickrPhoto {
     }
 
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -64,5 +66,22 @@ public class FlickrPhoto {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public boolean isShown() {
+        return shown;
+    }
+
+    public void setShown(boolean shown) {
+        this.shown = shown;
+    }
+
+    @Override
+    public String toString() {
+        return "id: " + this.id +
+                "\n: " + this.title +
+                "\nurl: " + this.url +
+                "\nlatitude: " + this.latitude +
+                "\nlongitude: " + this.longitude;
     }
 }

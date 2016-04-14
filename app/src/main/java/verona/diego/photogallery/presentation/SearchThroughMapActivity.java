@@ -2,6 +2,7 @@ package verona.diego.photogallery.presentation;
 
 import android.Manifest;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -21,8 +22,11 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -49,13 +53,11 @@ import verona.diego.photogallery.presentation.base.CheckInternetActivity;
 public class SearchThroughMapActivity extends CheckInternetActivity implements OnMapReadyCallback,
         GoogleMap.OnCameraChangeListener, Connectable, Disconnectable, Bindable {
 
-    static String flickrAPI = "1f97d6102a9c9d8eb3ac60d508e0f18a";
-
     private GoogleMap mMap;
     double tmp_lat = 0.0;
     double tmp_lng = 0.0;
 
-    static HashMap list_photo; //with hash map there will be not double values
+    static HashMap<Long, FlickrPhoto> list_photo; //with hash map there will be not double values
 
     private NetworkStatusDisplayer networkStatusDisplayer;
     private MerlinsBeard merlinsBeard;
@@ -67,7 +69,7 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        list_photo = new HashMap();
+        list_photo = new HashMap<Long, FlickrPhoto>();
 
         super.onCreate(savedInstanceState);
 
@@ -109,22 +111,22 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
     }
 
     /**
-     * Move the map camera, get the photos and set markers
+     * Ask and get photos from Flickr based on latitude and longitude
      */
-    private void setMarkers(LatLng mLatLng){
+    private void getPhotos(LatLng mLatLng){
         if(mLatLng == null)
             mLatLng = new LatLng(0.0,0.0);
         //get images
         Ion.getDefault(this).cancelAll(this); //cancel all pending requests
         btn_cancel.setVisibility(View.VISIBLE);
         String query_search = "https://api.flickr.com/services/rest/?method=flickr.photos.search" +
-                "&api_key="+flickrAPI +
+                "&api_key="+ getResources().getString(R.string.flickr_api) +
                 "&lat="+mLatLng.latitude +
                 "&lon="+mLatLng.longitude +
                 "&radius=5" + //[km]
                 "&nojsoncallback=1" +
                 "&has_geo=true" + //double sanity check
-                "&per_page=5" + //only 5 photos (fast and better)
+                "&per_page=250" + //num of photos to get
                 "&format=json";
         Log.v("query-outer", query_search);
         Future<JsonObject> json = Ion.with(this)
@@ -145,10 +147,9 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
 
                                              for (Iterator<JsonElement> it = lPhoto.iterator(); it.hasNext(); ) {
                                                  JsonObject photo = it.next().getAsJsonObject();
-                                                 if (photo.get("id") != null && !SearchThroughMapActivity.list_photo.containsKey(photo.get("id").getAsNumber().intValue())) {
-                                                     list_photo.put(photo.get("id"), null);
+                                                 if (photo.get("id") != null && !SearchThroughMapActivity.list_photo.containsKey(photo.get("id").getAsLong())) {
                                                      String query_info = "https://api.flickr.com/services/rest/?method=flickr.photos.getInfo" +//getInfo" +
-                                                             "&api_key=" + flickrAPI +
+                                                             "&api_key=" + getResources().getString(R.string.flickr_api) +
                                                              "&photo_id=" + photo.get("id").getAsNumber() +
                                                              "&format=json";
                                                      Log.v("query-inner", query_info);
@@ -166,14 +167,14 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
                                                                          JsonObject obj = parser.parse(result2).getAsJsonObject();
 
                                                                          JsonObject photo = obj.getAsJsonObject("photo");
-                                                                         SearchThroughMapActivity.list_photo
-                                                                                 .put(photo.get("id").getAsNumber().intValue(),
-                                                                                         new FlickrPhoto(photo.get("id").getAsNumber().intValue(),
-                                                                                                 photo.getAsJsonObject("title").get("_content").getAsString(),
-                                                                                                 photo.getAsJsonObject("urls").getAsJsonArray("url").get(0).getAsJsonObject().get("_content").getAsString(),
-                                                                                                 photo.getAsJsonObject("location").get("latitude").getAsDouble(),
-                                                                                                 photo.getAsJsonObject("location").get("longitude").getAsDouble()));
-                                                                         //Toast.makeText(SearchThroughMapActivity.this, "Add: " + photo.get("id").getAsNumber().intValue(), Toast.LENGTH_SHORT).show();
+                                                                         FlickrPhoto tmp = new FlickrPhoto(photo.get("id").getAsLong(),
+                                                                                 photo.getAsJsonObject("title").get("_content").getAsString(),
+                                                                                 photo.getAsJsonObject("urls").getAsJsonArray("url").get(0).getAsJsonObject().get("_content").getAsString(),
+                                                                                 photo.getAsJsonObject("location").get("latitude").getAsDouble(),
+                                                                                 photo.getAsJsonObject("location").get("longitude").getAsDouble());
+                                                                         Log.v("received-photo", ""+tmp);
+                                                                         SearchThroughMapActivity.list_photo.put(photo.get("id").getAsLong(),tmp);
+                                                                         //Toast.makeText(SearchThroughMapActivity.this, "Add: " + photo.get("id").getAsLong(), Toast.LENGTH_SHORT).show();
                                                                      }
                                                                  }
                                                              });
@@ -182,12 +183,46 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
                                              //Toast.makeText(SearchThroughMapActivity.this, "count photo: " + list_photo.size(), Toast.LENGTH_SHORT).show();
                                          }
                                      }
-
                                      btn_cancel.setVisibility(View.GONE);
                                      mProgress.setProgress(0);
+                                     addMarkers();
                                 }
                 });
-        //add markers
+    }
+
+    /**
+     *
+     */
+    private void addMarkers(){
+        for (Object val : list_photo.values()) {
+            final FlickrPhoto photo = (FlickrPhoto) val;
+            if(photo != null) {
+
+                MarkerOptions tmp = new MarkerOptions()
+                        .position(new LatLng(photo.getLatitude(), photo.getLongitude()))
+                        .title(photo.getTitle())
+                        .snippet(String.valueOf(photo.getId()));
+                mMap.addMarker(tmp);
+
+                mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                    @Override
+                    public boolean onMarkerClick(Marker arg0) {
+                        //Toast.makeText(SearchThroughMapActivity.this, "id: "+arg0.getSnippet(), Toast.LENGTH_SHORT).show();
+                        FlickrPhoto tmp = list_photo.get(Long.valueOf(arg0.getSnippet()));
+
+                        Intent i = new Intent(SearchThroughMapActivity.this, PhotoDetails.class);
+                        i.putExtra("id", ""+arg0.getSnippet());
+                        i.putExtra("title", ""+arg0.getTitle());
+                        i.putExtra("url", ""+tmp.getUrl());
+                        i.putExtra("lat", ""+tmp.getLatitude());
+                        i.putExtra("lng", ""+tmp.getLongitude());
+                        startActivity(i);
+
+                        return true;
+                    }
+                });
+            }
+        }
     }
 
     /**
@@ -220,7 +255,7 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
             public boolean onMyLocationButtonClick() {
                 CameraPosition cameraP = mMap.getCameraPosition();
                 LatLng tmp = new LatLng(cameraP.target.longitude,cameraP.target.latitude);
-                setMarkers(tmp);
+                getPhotos(tmp);
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(tmp, 5));
                 return true;
             }
@@ -237,7 +272,7 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
     @Override
     public void onCameraChange(CameraPosition position){
         if (currentPosition != position){
-            setMarkers(new LatLng(position.target.latitude, position.target.longitude));
+            getPhotos(new LatLng(position.target.latitude, position.target.longitude));
             //Toast.makeText(SearchThroughMapActivity.this,
               //      "Move", Toast.LENGTH_SHORT).show();
         }
@@ -315,7 +350,7 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
                                             Toast.makeText(SearchThroughMapActivity.this, "Invalid data", Toast.LENGTH_SHORT).show();
                                         else {
                                             LatLng tmp = new LatLng(Double.valueOf(eT_lat.getText().toString()), Double.valueOf(eT_lng.getText().toString()));
-                                            setMarkers(tmp);
+                                            getPhotos(tmp);
                                             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(tmp, 5));
                                         }
                                     }
