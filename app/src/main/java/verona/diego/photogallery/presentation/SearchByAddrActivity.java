@@ -1,6 +1,7 @@
 package verona.diego.photogallery.presentation;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.v7.app.AlertDialog;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -9,15 +10,14 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Adapter;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.GridView;
-import android.widget.ImageView;
+import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -34,7 +34,7 @@ import com.novoda.merlin.registerable.connection.Connectable;
 import com.novoda.merlin.registerable.disconnection.Disconnectable;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -47,14 +47,17 @@ import verona.diego.photogallery.models.FlickrPhoto;
 import verona.diego.photogallery.presentation.base.CheckInternetActivity;
 
 public class SearchByAddrActivity extends CheckInternetActivity implements Connectable, Disconnectable, Bindable {
-
     LatLng cLatLng = new LatLng(46.074779, 11.121749); //Trento
     TextView text_coords;
 
     GridView gv;
     GridViewAdapter adapter = null;
 
-    List<String> urls = new ArrayList<String>();
+    ProgressBar mProgress;
+    ImageButton btn_cancel;
+
+    HashMap<Long,FlickrPhoto> hTmp = new HashMap<>();
+    List<FlickrPhoto> photos = new ArrayList<>();
 
     private NetworkStatusDisplayer networkStatusDisplayer;
     private MerlinsBeard merlinsBeard;
@@ -70,6 +73,24 @@ public class SearchByAddrActivity extends CheckInternetActivity implements Conne
         if(getSupportActionBar()!=null)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        mProgress = (ProgressBar) findViewById(R.id.progressBarGrid);
+        if(mProgress != null)
+            mProgress.setProgress(0);
+        btn_cancel = (ImageButton) findViewById(R.id.btn_action_cancel);
+        if (btn_cancel != null) {
+            btn_cancel.setVisibility(View.GONE); //ProgressBar will be adapted
+            btn_cancel.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View arg0) {
+                    Ion.getDefault(SearchByAddrActivity.this).cancelAll(this); //cancel all pending requests
+                    btn_cancel.setVisibility(View.GONE);
+                    mProgress.setProgress(0);
+                }
+
+            });
+        }
+
         text_coords = (TextView)  findViewById(R.id.text_coords);
         if(text_coords != null)
             text_coords.setText("\n"+cLatLng+"\n");
@@ -78,17 +99,38 @@ public class SearchByAddrActivity extends CheckInternetActivity implements Conne
         merlinsBeard = MerlinsBeard.from(this);
 
         gv = (GridView) findViewById(R.id.grid_view);
-        adapter = new GridViewAdapter(SearchByAddrActivity.this, urls);
+        adapter = new GridViewAdapter(SearchByAddrActivity.this, photos);
         gv.setAdapter(adapter);
         gv.setOnScrollListener(new ScrollListener(this));
+
+        gv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+                FlickrPhoto photo = (FlickrPhoto) parent.getItemAtPosition(position);
+
+                Intent i = new Intent(SearchByAddrActivity.this, PhotoDetails.class);
+                i.putExtra("id", ""+photo.getId());
+                i.putExtra("title", ""+photo.getTitle());
+                i.putExtra("url", ""+photo.getUrl());
+                i.putExtra("lat", ""+photo.getLatitude());
+                i.putExtra("lng", ""+photo.getLongitude());
+                i.putExtra("urlPhoto", ""+photo.getUrlMedium());
+                startActivity(i);
+            }
+        });
 
         updateGallery(cLatLng);
     }
 
+    /**
+     * This function asks to Ficklr news photos according to LatLng value
+     * @param mLatLng
+     */
     private void updateGallery(LatLng mLatLng) {
-
-        urls.clear(); // remove older
-
+        hTmp = null;
+        hTmp = new HashMap<>();
+        Ion.getDefault(SearchByAddrActivity.this).cancelAll(this);
+        photos.clear(); // remove older
+        btn_cancel.setVisibility(View.VISIBLE);
         if(mLatLng == null)
             mLatLng = new LatLng(0.0,0.0);
         //get images
@@ -106,6 +148,7 @@ public class SearchByAddrActivity extends CheckInternetActivity implements Conne
         Future<JsonObject> json = Ion.with(this)
                 .load(query_search)
                 .setLogging("json1", Log.DEBUG)
+                .progressBar(mProgress)
                 .asJsonObject()
                 .setCallback(new FutureCallback<JsonObject>() {
                     @Override
@@ -121,6 +164,35 @@ public class SearchByAddrActivity extends CheckInternetActivity implements Conne
                                 for (Iterator<JsonElement> it = lPhoto.iterator(); it.hasNext(); ) {
                                     JsonObject photo = it.next().getAsJsonObject();
                                     if (photo.get("id") != null) {
+                                        hTmp.put(photo.get("id").getAsLong(), new FlickrPhoto(photo.get("id").getAsLong(), ""));
+                                        //get general info
+                                        String query_info = "https://api.flickr.com/services/rest/?method=flickr.photos.getInfo" +//getInfo" +
+                                                "&api_key=" + getResources().getString(R.string.flickr_api) +
+                                                "&photo_id=" + photo.get("id").getAsNumber() +
+                                                "&format=json";
+                                        Log.v("query-inner", query_info);
+                                        Ion.with(SearchByAddrActivity.this)
+                                                .load(query_info)
+                                                .asString() // Flickr guys are not funny -.-"
+                                                .setCallback(new FutureCallback<String>() {
+                                                    @Override
+                                                    public void onCompleted(Exception e, String result2) {
+                                                        if (result2 != null) {
+                                                            result2 = result2.substring(14, result2.length() - 1); //extra information
+                                                            Log.v("json-inner", result2);
+
+                                                            JsonParser parser = new JsonParser();
+                                                            JsonObject obj = parser.parse(result2).getAsJsonObject();
+
+                                                            JsonObject photo = obj.getAsJsonObject("photo");
+                                                            hTmp.get(photo.get("id").getAsLong()).setTitle(photo.getAsJsonObject("title").get("_content").getAsString());
+                                                            hTmp.get(photo.get("id").getAsLong()).setUrl(photo.getAsJsonObject("urls").getAsJsonArray("url").get(0).getAsJsonObject().get("_content").getAsString());
+                                                            hTmp.get(photo.get("id").getAsLong()).setLatitude(photo.getAsJsonObject("location").get("latitude").getAsDouble());
+                                                            hTmp.get(photo.get("id").getAsLong()).setLongitude(photo.getAsJsonObject("location").get("longitude").getAsDouble());
+                                                        }
+                                                    }
+                                                });
+                                        //get photo sizes
                                         String query_image = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes" +
                                                 "&api_key=" + getResources().getString(R.string.flickr_api) +
                                                 "&photo_id=" + photo.get("id").getAsNumber() +
@@ -132,6 +204,7 @@ public class SearchByAddrActivity extends CheckInternetActivity implements Conne
                                                 .setCallback(new FutureCallback<String>() {
                                                     @Override
                                                     public void onCompleted(Exception e, String result) {
+
                                                         if (result != null) {
                                                             result = result.substring(14, result.length() - 1); //extra information
                                                             Log.v("result-sizes", "" + result);
@@ -141,22 +214,32 @@ public class SearchByAddrActivity extends CheckInternetActivity implements Conne
 
                                                             JsonArray size = obj.getAsJsonObject("sizes").getAsJsonArray("size");
                                                             //Toast.makeText(PhotoDetails.this, ""+size, Toast.LENGTH_LONG).show();
+                                                            Long idT = null;
                                                             for (JsonElement s : size) {
                                                                 JsonObject ph = (JsonObject) s;
-                                                                if (ph.get("label").getAsString().equals("Square")) {
+                                                                //get ID user from url
+                                                                idT = Long.valueOf(ph.get("source").getAsString().substring(36,47));
+                                                                if (ph.get("label").getAsString().equals("Medium")) {
                                                                     Log.v("url-img", ph.get("source").getAsString());
-                                                                    SearchByAddrActivity.this.urls.add(ph.get("source").getAsString());
+                                                                    hTmp.get(idT).setUrlThumbnail(ph.get("source").getAsString());
+                                                                }
+                                                                if (ph.get("label").getAsString().equals("Large")) {
+                                                                    Log.v("url-img", ph.get("source").getAsString());
+                                                                    hTmp.get(idT).setUrlMedium(ph.get("source").getAsString());
                                                                 }
                                                             }
+                                                            photos.add(hTmp.get(idT));
+                                                            adapter.notifyDataSetChanged();
                                                         }
-                                                        adapter.notifyDataSetChanged();
                                                     }
                                                 });
-                                        //Toast.makeText(SearchByAddrActivity.this, "num photo: " + urls.size(), Toast.LENGTH_SHORT).show();
+                                        //Toast.makeText(SearchByAddrActivity.this, "num photo: " + photos.size(), Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             }
                         }
+                        mProgress.setProgress(0);
+                        btn_cancel.setVisibility(View.GONE);
                     }
                 });
     }

@@ -10,15 +10,17 @@ public class FlickrPhoto {
     private long id = 0;
     private String title = "";
     private String url = "";
+    private String urlThumbnail = "";
+    private String urlMedium = "";
     private double latitude = 0.0;
     private double longitude = 0.0;
     private boolean shown = false;
 
-    public FlickrPhoto(int id, String title){
+    public FlickrPhoto(){}
+    public FlickrPhoto(long id, String title){
         this.id = id;
         this.title = title;
     }
-
     public FlickrPhoto(long id, String title, String url, double latitude, double longitude){
         this.id = id;
         this.title = title;
@@ -74,6 +76,22 @@ public class FlickrPhoto {
 
     public void setShown(boolean shown) {
         this.shown = shown;
+    }
+
+    public String getUrlThumbnail() {
+        return urlThumbnail;
+    }
+
+    public void setUrlThumbnail(String urlThumbnail) {
+        this.urlThumbnail = urlThumbnail;
+    }
+
+    public String getUrlMedium() {
+        return urlMedium;
+    }
+
+    public void setUrlMedium(String urlMedium) {
+        this.urlMedium = urlMedium;
     }
 
     @Override

@@ -1,31 +1,14 @@
 package verona.diego.photogallery.presentation;
 
-import android.Manifest;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.view.animation.RotateAnimation;
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -45,6 +28,10 @@ import verona.diego.photogallery.connectivity.display.NetworkStatusDisplayer;
 import verona.diego.photogallery.models.FlickrPhoto;
 import verona.diego.photogallery.presentation.base.CheckInternetActivity;
 
+/**
+ * This activity is used both from search through map and from searchByAddr and it shows
+ * complete photo information
+ */
 public class PhotoDetails extends CheckInternetActivity implements Connectable, Disconnectable, Bindable {
 
     private Toolbar myToolbar;
@@ -82,7 +69,21 @@ public class PhotoDetails extends CheckInternetActivity implements Connectable, 
 
         id = Long.valueOf(getIntent().getExtras().getString("id"));
 
-        printPhoto(id);
+        if(getIntent().getExtras().getString("urlPhoto") != null){ //called from searchAddr
+            Ion.with(image)
+                    //.placeholder(R.drawable.placeholder_image)
+                    .error(R.drawable.ic_action_cancel)
+                    .load(getIntent().getExtras().getString("urlPhoto"))
+                    .setCallback(new FutureCallback<ImageView>() {
+                        @Override
+                        public void onCompleted(Exception e, ImageView result) {
+                            if(findViewById(R.id.loadingPanel) != null)
+                                findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+                        }
+                    });
+        }else { //called from map
+            printPhoto(id);
+        }
 
     }
 
@@ -110,7 +111,7 @@ public class PhotoDetails extends CheckInternetActivity implements Connectable, 
                             //Toast.makeText(PhotoDetails.this, ""+size, Toast.LENGTH_LONG).show();
                             for( JsonElement s : size ) {
                                 JsonObject ph = (JsonObject)s;
-                                if(ph.get("label").getAsString().equals("Medium")){
+                                if(ph.get("label").getAsString().equals("Large")){
                                     Log.v("url-img", ph.get("source").getAsString());
                                     Ion.with(image)
                                             //.placeholder(R.drawable.placeholder_image)

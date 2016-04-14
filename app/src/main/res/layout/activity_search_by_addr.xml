@@ -19,12 +19,31 @@
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
 
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBarGrid"
+        android:layout_below="@+id/toolbar_map"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/btn_action_cancel"
+        android:layout_alignBottom="@+id/btn_action_cancel" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_action_cancel"
+        android:background="@drawable/ic_action_cancel"
+        android:contentDescription="@string/btn_cancel"
+        android:layout_below="@+id/toolbar_map"
+        android:layout_alignParentEnd="true" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/text_coords"
         android:gravity="center"
-        android:layout_below="@+id/toolbar_map"
+        android:layout_below="@+id/progressBarGrid"
         android:layout_alignParentStart="true" />
 
     <GridView xmlns:android="http://schemas.android.com/apk/res/android"

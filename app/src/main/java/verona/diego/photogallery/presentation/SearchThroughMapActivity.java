@@ -22,7 +22,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -75,7 +74,7 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
 
         setContentView(R.layout.activity_search_through_map);
 
-        mProgress = (ProgressBar) findViewById(R.id.progressBarMap);
+        mProgress = (ProgressBar) findViewById(R.id.progressBarGrid);
         if(mProgress != null)
             mProgress.setProgress(0);
         btn_cancel = (ImageButton) findViewById(R.id.btn_action_cancel);
@@ -174,6 +173,10 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
                                                                                  photo.getAsJsonObject("location").get("longitude").getAsDouble());
                                                                          Log.v("received-photo", ""+tmp);
                                                                          SearchThroughMapActivity.list_photo.put(photo.get("id").getAsLong(),tmp);
+                                                                         mMap.addMarker(new MarkerOptions()
+                                                                                 .position(new LatLng(tmp.getLatitude(), tmp.getLongitude()))
+                                                                                 .title(tmp.getTitle())
+                                                                                 .snippet(String.valueOf(tmp.getId())));
                                                                          //Toast.makeText(SearchThroughMapActivity.this, "Add: " + photo.get("id").getAsLong(), Toast.LENGTH_SHORT).show();
                                                                      }
                                                                  }
@@ -185,44 +188,8 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
                                      }
                                      btn_cancel.setVisibility(View.GONE);
                                      mProgress.setProgress(0);
-                                     addMarkers();
                                 }
                 });
-    }
-
-    /**
-     *
-     */
-    private void addMarkers(){
-        for (Object val : list_photo.values()) {
-            final FlickrPhoto photo = (FlickrPhoto) val;
-            if(photo != null) {
-
-                MarkerOptions tmp = new MarkerOptions()
-                        .position(new LatLng(photo.getLatitude(), photo.getLongitude()))
-                        .title(photo.getTitle())
-                        .snippet(String.valueOf(photo.getId()));
-                mMap.addMarker(tmp);
-
-                mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                    @Override
-                    public boolean onMarkerClick(Marker arg0) {
-                        //Toast.makeText(SearchThroughMapActivity.this, "id: "+arg0.getSnippet(), Toast.LENGTH_SHORT).show();
-                        FlickrPhoto tmp = list_photo.get(Long.valueOf(arg0.getSnippet()));
-
-                        Intent i = new Intent(SearchThroughMapActivity.this, PhotoDetails.class);
-                        i.putExtra("id", ""+arg0.getSnippet());
-                        i.putExtra("title", ""+arg0.getTitle());
-                        i.putExtra("url", ""+tmp.getUrl());
-                        i.putExtra("lat", ""+tmp.getLatitude());
-                        i.putExtra("lng", ""+tmp.getLongitude());
-                        startActivity(i);
-
-                        return true;
-                    }
-                });
-            }
-        }
     }
 
     /**
@@ -268,6 +235,23 @@ public class SearchThroughMapActivity extends CheckInternetActivity implements O
                     "Review app permissions", Toast.LENGTH_SHORT).show();
         }
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(46.074779, 11.121749), 10));
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker arg0) {
+                //Toast.makeText(SearchThroughMapActivity.this, "id: "+arg0.getSnippet(), Toast.LENGTH_SHORT).show();
+                FlickrPhoto tmp = list_photo.get(Long.valueOf(arg0.getSnippet()));
+
+                Intent i = new Intent(SearchThroughMapActivity.this, PhotoDetails.class);
+                i.putExtra("id", ""+arg0.getSnippet());
+                i.putExtra("title", ""+arg0.getTitle());
+                i.putExtra("url", ""+tmp.getUrl());
+                i.putExtra("lat", ""+tmp.getLatitude());
+                i.putExtra("lng", ""+tmp.getLongitude());
+                startActivity(i);
+
+                return true;
+            }
+        });
     }
 
     @Override

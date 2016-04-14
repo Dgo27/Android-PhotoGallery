@@ -9,18 +9,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import verona.diego.photogallery.R;
+import verona.diego.photogallery.models.FlickrPhoto;
 import verona.diego.photogallery.models.SquaredImageView;
 
 import static android.widget.ImageView.ScaleType.CENTER_CROP;
 
 /**
+ * Adapter for the grid view
  * Created by Diego on 14/04/2016.
  */
 public class GridViewAdapter extends BaseAdapter {
     private Context context;
-    private List<String> urls = new ArrayList<String>();
+    private List<FlickrPhoto> urls = new ArrayList<>();
 
-    public GridViewAdapter(Context context, List<String> urls) {
+    public GridViewAdapter(Context context, List<FlickrPhoto> urls) {
         this.context = context;
         this.urls = urls;
     }
@@ -33,11 +35,11 @@ public class GridViewAdapter extends BaseAdapter {
         }
 
         // Get the image URL for the current position.
-        String url = getItem(position);
+        FlickrPhoto photo = getItem(position);
 
         // Trigger the download of the URL asynchronously into the image view.
         Picasso.with(context) //
-                .load(url) //
+                .load(photo.getUrlThumbnail()) //
                 .placeholder(R.drawable.placeholder) //
                 .error(R.drawable.error) //
                 .fit() //
@@ -51,7 +53,7 @@ public class GridViewAdapter extends BaseAdapter {
         return urls.size();
     }
 
-    @Override public String getItem(int position) {
+    @Override public FlickrPhoto getItem(int position) {
         return urls.get(position);
     }
 
