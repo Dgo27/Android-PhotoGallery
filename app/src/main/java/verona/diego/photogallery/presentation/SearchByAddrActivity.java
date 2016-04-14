@@ -214,12 +214,17 @@ public class SearchByAddrActivity extends CheckInternetActivity implements Conne
 
                                                             JsonArray size = obj.getAsJsonObject("sizes").getAsJsonArray("size");
                                                             //Toast.makeText(PhotoDetails.this, ""+size, Toast.LENGTH_LONG).show();
+
+                                                            //Search id
                                                             Long idT = null;
+                                                            int i = 0;
                                                             for (JsonElement s : size) {
                                                                 JsonObject ph = (JsonObject) s;
                                                                 //get ID user from url
-                                                                idT = Long.valueOf(ph.get("source").getAsString().substring(36,47));
                                                                 if (ph.get("label").getAsString().equals("Medium")) {
+                                                                    String tTmp = ph.get("source").getAsString().substring(36,47);
+                                                                    idT = Long.valueOf(tTmp);
+                                                                    i++;
                                                                     Log.v("url-img", ph.get("source").getAsString());
                                                                     hTmp.get(idT).setUrlThumbnail(ph.get("source").getAsString());
                                                                 }
@@ -228,8 +233,10 @@ public class SearchByAddrActivity extends CheckInternetActivity implements Conne
                                                                     hTmp.get(idT).setUrlMedium(ph.get("source").getAsString());
                                                                 }
                                                             }
-                                                            photos.add(hTmp.get(idT));
-                                                            adapter.notifyDataSetChanged();
+                                                            if (i > 0) {
+                                                                photos.add(hTmp.get(idT));
+                                                                adapter.notifyDataSetChanged();
+                                                            }
                                                         }
                                                     }
                                                 });
